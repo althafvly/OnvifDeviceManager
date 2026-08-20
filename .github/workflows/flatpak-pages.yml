@@ -1,0 +1,62 @@
+name: Deploy Flatpak Repo to GitHub Pages
+
+on:
+  push:
+    branches: ["master", "main"]
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install flatpak-builder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+
+      - name: Add Flathub remote
+        run: flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: .flatpak-builder/ccache
+          key: flatpak-ccache-${{ github.sha }}
+          restore-keys: |
+            flatpak-ccache-
+
+      - name: Build Flatpak repository
+        run: |
+          # Build the flatpak and output to a repository located at deployment/repo
+          flatpak-builder --repo=deployment/repo --force-clean --user --ccache --install-deps-from=flathub deployment/builddir deployment/io.github.quedale.onvifmgr.yml
+          # Copy the landing page to the repository root so browsers show instructions instead of 404
+          cp index.html deployment/repo/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'deployment/repo'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

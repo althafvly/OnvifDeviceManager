@@ -34,8 +34,8 @@ modules:
       - rm -rf /app/include       #Cleaning up files not needed at runtime
     sources:
       - type: git
-        url: https://github.com/Quedale/OnvifDeviceManager.git
-        branch: main
+        url: https://github.com/althafvly/OnvifDeviceManager.git
+        branch: master
     modules:
       - name: cutils
         buildsystem: cmake

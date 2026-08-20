@@ -47,6 +47,14 @@ The goal of this project is to implement a Onvif Device Manager similar to the w
 - D-Link (Tapo C200)
 - [Yi-Hack Allwinner V2](https://github.com/roleoroleo/yi-hack-Allwinner-v2) (Pro 2K Home)
 
+# Quick Install (Flatpak via GitHub Pages)
+If you have flatpak installed, you can install OnvifDeviceManager directly from our GitHub Pages repository without building it yourself:
+
+```bash
+flatpak remote-add --user --no-gpg-verify --if-not-exists onvifmgr https://althafvly.github.io/OnvifDeviceManager/
+flatpak --user install onvifmgr io.github.quedale.onvifmgr
+```
+
 # How to build - Option 1 : Flatpak
 ### Install flatpak-builder
 ```

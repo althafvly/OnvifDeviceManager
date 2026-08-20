@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Install OnvifDeviceManager</title>
+</head>
+<body style="font-family: sans-serif; max-width: 800px; margin: 40px auto; line-height: 1.6; padding: 0 20px;">
+    <h1>OnvifDeviceManager</h1>
+    <p>This repository hosts a Flatpak distribution for OnvifDeviceManager. Follow the instructions below to easily install it on your Linux system.</p>
+
+    <p><strong>Note:</strong> You must have <a href="https://flatpak.org/setup/">Flatpak</a> installed on your system before running these commands.</p>
+
+    <h2>Installation</h2>
+    <p>Run the following commands in your terminal:</p>
+    
+    <pre style="background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto;">
+flatpak remote-add --user --no-gpg-verify --if-not-exists onvifmgr https://althafvly.github.io/OnvifDeviceManager/
+flatpak --user install onvifmgr io.github.quedale.onvifmgr</pre>
+
+    <h2>Running the Application</h2>
+    <p>Once installed, you should be able to find the <strong>OnvifDeviceManager</strong> application in your system's application launcher. Alternatively, you can run it via the terminal:</p>
+    
+    <pre style="background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto;">
+flatpak run io.github.quedale.onvifmgr</pre>
+
+    <hr style="margin-top: 40px;">
+    <p><small>View the source code on <a href="https://github.com/althafvly/OnvifDeviceManager">GitHub</a></small></p>
+</body>
+</html>
