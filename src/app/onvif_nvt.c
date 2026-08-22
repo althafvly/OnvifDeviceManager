@@ -4,6 +4,8 @@
 #include "clogger.h"
 #include "../gst/gstrtspstream.h"
 #include "onvif_nvt_stream_details.h"
+#include "omgr_device_row.h"
+#include "ptz/onvif_ptz_service.h"
 
 extern char _binary_microphone_png_size[];
 extern char _binary_microphone_png_start[];
@@ -23,6 +25,7 @@ typedef struct {
     GtkWidget * info_panel;
     GtkWidget * overlay_grid;
     GtkWidget * streams_info_container;
+    OnvifMgrDeviceRow * active_device;
 } OnvifNVTPrivate;
 
 static GParamSpec *obj_properties[N_PROPERTIES] = { NULL, };
@@ -41,6 +44,49 @@ toggle_mic_press_cb (GtkWidget *widget, gpointer * p, GstRtspPlayer * player){
     return FALSE;
 }
 
+static gboolean 
+ptz_move_cb (GtkWidget *widget, GdkEventButton *event, gpointer user_data) {
+    OnvifNVT * self = ONVIFMGR_NVT(user_data);
+    OnvifNVTPrivate *priv = OnvifNVT__get_instance_private (self);
+    if(!priv->active_device) return FALSE;
+    
+    OnvifDevice * dev = OnvifMgrDeviceRow__get_device(priv->active_device);
+    OnvifPTZService * ptz = OnvifDevice__get_ptz_service(dev);
+    if(!ptz) return FALSE;
+    
+    OnvifMediaProfile * profile = OnvifMgrDeviceRow__get_profile(priv->active_device);
+    if(!profile) return FALSE;
+    
+    float pan = 0.0f, tilt = 0.0f, zoom = 0.0f;
+    const char * name = gtk_widget_get_name(widget);
+    if (g_strcmp0(name, "ptz_up") == 0) tilt = 1.0f;
+    else if (g_strcmp0(name, "ptz_down") == 0) tilt = -1.0f;
+    else if (g_strcmp0(name, "ptz_left") == 0) pan = -1.0f;
+    else if (g_strcmp0(name, "ptz_right") == 0) pan = 1.0f;
+    else if (g_strcmp0(name, "ptz_in") == 0) zoom = 1.0f;
+    else if (g_strcmp0(name, "ptz_out") == 0) zoom = -1.0f;
+    
+    OnvifPTZService__continuous_move(ptz, (char *)OnvifMediaProfile__get_token(profile), pan, tilt, zoom);
+    return TRUE;
+}
+
+static gboolean 
+ptz_stop_cb (GtkWidget *widget, GdkEventButton *event, gpointer user_data) {
+    OnvifNVT * self = ONVIFMGR_NVT(user_data);
+    OnvifNVTPrivate *priv = OnvifNVT__get_instance_private (self);
+    if(!priv->active_device) return FALSE;
+    
+    OnvifDevice * dev = OnvifMgrDeviceRow__get_device(priv->active_device);
+    OnvifPTZService * ptz = OnvifDevice__get_ptz_service(dev);
+    if(!ptz) return FALSE;
+    
+    OnvifMediaProfile * profile = OnvifMgrDeviceRow__get_profile(priv->active_device);
+    if(!profile) return FALSE;
+    
+    OnvifPTZService__stop(ptz, (char *)OnvifMediaProfile__get_token(profile));
+    return TRUE;
+}
+
 static void 
 OnvifNVT__player_stopped_cb(GstRtspPlayer * player, OnvifNVT * self){
     OnvifNVTPrivate *priv = OnvifNVT__get_instance_private (self);
@@ -57,6 +103,7 @@ OnvifNVT__player_notplaying_cb(GstRtspPlayer * player, GstRtspPlayerSession * se
 static void 
 OnvifNVT__player_started_cb(GstRtspPlayer * player, GstRtspPlayerSession * session, OnvifNVT * self){
     OnvifNVTPrivate *priv = OnvifNVT__get_instance_private (self);
+    priv->active_device = ONVIFMGR_DEVICEROW(GstRtspPlayerSession__get_user_data(session));
     gtk_widget_set_visible(priv->overlay_grid,TRUE);
 }
 
@@ -111,6 +158,25 @@ OnvifNVT__create_controls_overlay(OnvifNVT * self){
     gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(widget),TRUE);
     gtk_button_set_image (GTK_BUTTON (widget), image);
     gtk_box_pack_start (GTK_BOX (controls), widget, FALSE, FALSE, 5);
+
+    // Add PTZ controls
+    GtkWidget * ptz_grid = gtk_grid_new();
+    gtk_grid_set_column_spacing(GTK_GRID(ptz_grid), 2);
+    gtk_grid_set_row_spacing(GTK_GRID(ptz_grid), 2);
+    gtk_box_pack_start (GTK_BOX (controls), ptz_grid, FALSE, FALSE, 20);
+    
+    const char * labels[] = {"^", "v", "<", ">", "+", "-"};
+    const char * names[] = {"ptz_up", "ptz_down", "ptz_left", "ptz_right", "ptz_in", "ptz_out"};
+    int positions[][2] = {{1,0}, {1,2}, {0,1}, {2,1}, {3,0}, {3,2}};
+    
+    for (int i=0; i<6; i++) {
+        GtkWidget * btn = gtk_button_new_with_label(labels[i]);
+        gtk_widget_set_name(btn, names[i]);
+        gtk_widget_set_size_request(btn, 30, 30);
+        g_signal_connect (btn, "button-press-event", G_CALLBACK (ptz_move_cb), self);
+        g_signal_connect (btn, "button-release-event", G_CALLBACK (ptz_stop_cb), self);
+        gtk_grid_attach(GTK_GRID(ptz_grid), btn, positions[i][0], positions[i][1], 1, 1);
+    }
 
     priv->info_panel = gtk_frame_new(NULL);
     gtk_widget_set_margin_start(priv->info_panel,10);
@@ -233,6 +299,7 @@ OnvifNVT__init (OnvifNVT * self){
     priv->overlay_grid = NULL;
     priv->player = NULL;
     priv->streams_info_container = NULL;
+    priv->active_device = NULL;
 }
 
 GtkWidget* 

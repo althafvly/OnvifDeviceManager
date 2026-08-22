@@ -70,7 +70,7 @@ modules:
           - make -j$(nproc) install
         sources:
           - type: git
-            url: https://github.com/Quedale/OnvifSoapLib.git
+            url: https://github.com/althafvly/OnvifSoapLib.git
             branch: main
           - type: archive #Adding gsoap source under onvifsoap module because some source files and binaries are needed
             url: https://sourceforge.net/projects/gsoap2/files/gsoap_2.8.134.zip/download

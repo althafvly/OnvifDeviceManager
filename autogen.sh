@@ -1164,7 +1164,7 @@ if [ $rebuild != 0 ]; then
     buildMakeProject project="gsoap" srcdir="gsoap-2.8" prefix="$SUBPROJECT_DIR/gsoap-2.8/build/dist" autogen="skip" configure="--with-openssl=/usr/lib/ssl"
   fi
 
-  pullOrClone project="onvifsoap" path=https://github.com/Quedale/OnvifSoapLib.git ignorecache="true"
+  pullOrClone project="onvifsoap" path=https://github.com/althafvly/OnvifSoapLib.git ignorecache="true"
 
   nodownload=""
   if [ "$NO_DOWNLOAD" -eq 1 ]; then nodownload="--no-download"; fi
@@ -1580,7 +1580,7 @@ if [ $gst_ret != 0 ] || [ $ENABLE_LATEST != 0 ]; then
 
     if [ ! -z "$(pkgCheck project="libde265" name=libde265 minver=v1.0.15)" ]; then
       pullOrClone project="libde265" path="https://github.com/strukturag/libde265.git" tag=v1.0.15
-      buildMakeProject project="libde265" srcdir="libde265" prefix="$SUBPROJECT_DIR/libde265/dist" configure="--disable-sherlock265"
+      buildMakeProject project="libde265" srcdir="libde265" prefix="$SUBPROJECT_DIR/libde265/dist" configure="--disable-sherlock265 --disable-sse"
     fi
 
     if [ ! -z "$(pkgCheck project="x11-xcb" name=x11-xcb minver=1.7.2)" ]; then
