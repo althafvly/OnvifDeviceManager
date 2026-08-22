@@ -1,0 +1,33 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Run daily at 2:00 AM UTC
+  workflow_dispatch: # Allow manual trigger from the GitHub Actions UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for merging
+
+      - name: Sync with upstream
+        run: |
+          # Configure Git identity for the GitHub Actions bot
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Add the upstream remote
+          git remote add upstream https://github.com/Quedale/OnvifDeviceManager.git
+          git fetch upstream
+          
+          # Merge upstream changes into the current branch
+          git merge upstream/main --no-edit
+          
+          # Push the merged changes back to this fork
+          git push origin HEAD
