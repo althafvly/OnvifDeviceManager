@@ -1,4 +1,4 @@
-m4_define([onvifmgr_major_version], [0])
+m4_define([onvifmgr_major_version], [1])
 m4_define([onvifmgr_minor_version], [0])
 ...
 m4_define([onvifmgr_version],[onvifmgr_major_version.onvifmgr_minor_version])
